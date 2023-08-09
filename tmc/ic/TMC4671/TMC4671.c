@@ -6,54 +6,50 @@
  */
 #include "TMC4671.h"
 
-#define STATE_NOTHING_TO_DO    0
-#define STATE_START_INIT       1
-#define STATE_WAIT_INIT_TIME   2
-#define STATE_ESTIMATE_OFFSET  3
-
-// => SPI wrapper
-extern uint8_t tmc4671_readwriteByte(uint8_t motor, uint8_t data, uint8_t lastTransfer);
-// <= SPI wrapper
+#define STATE_NOTHING_TO_DO 0
+#define STATE_START_INIT 1
+#define STATE_WAIT_INIT_TIME 2
+#define STATE_ESTIMATE_OFFSET 3
 
 // spi access
-int32_t tmc4671_readInt(uint8_t motor, uint8_t address)
-{
-	// clear write bit
-	address &= 0x7F;
+extern int32_t tmc4671_readInt(uint8_t motor, uint8_t address);
+// {
+// 	// clear write bit
+// 	address &= 0x7F;
 
-	// write address
-	tmc4671_readwriteByte(motor, address, false);
+// 	// write address
+// 	tmc4671_readwriteByte(motor, address, false);
 
-	// read data
-	int32_t value = tmc4671_readwriteByte(motor, 0, false);
-	value <<= 8;
-	value |= tmc4671_readwriteByte(motor, 0, false);
-	value <<= 8;
-	value |= tmc4671_readwriteByte(motor, 0, false);
-	value <<= 8;
-	value |= tmc4671_readwriteByte(motor, 0, true);
+// 	// read data
+// 	int32_t value = tmc4671_readwriteByte(motor, 0, false);
+// 	value <<= 8;
+// 	value |= tmc4671_readwriteByte(motor, 0, false);
+// 	value <<= 8;
+// 	value |= tmc4671_readwriteByte(motor, 0, false);
+// 	value <<= 8;
+// 	value |= tmc4671_readwriteByte(motor, 0, true);
 
-	return value;
-}
+// 	return value;
+// }
 
-void tmc4671_writeInt(uint8_t motor, uint8_t address, int32_t value)
-{
-	// write address
-	tmc4671_readwriteByte(motor, address|0x80, false);
+extern void tmc4671_writeInt(uint8_t motor, uint8_t address, int32_t value);
+// {
+// 	// write address
+// 	tmc4671_readwriteByte(motor, address|0x80, false);
 
-	// write value
-	tmc4671_readwriteByte(motor, 0xFF & (value>>24), false);
-	tmc4671_readwriteByte(motor, 0xFF & (value>>16), false);
-	tmc4671_readwriteByte(motor, 0xFF & (value>>8), false);
-	tmc4671_readwriteByte(motor, 0xFF & (value>>0), true);
-}
+// 	// write value
+// 	tmc4671_readwriteByte(motor, 0xFF & (value>>24), false);
+// 	tmc4671_readwriteByte(motor, 0xFF & (value>>16), false);
+// 	tmc4671_readwriteByte(motor, 0xFF & (value>>8), false);
+// 	tmc4671_readwriteByte(motor, 0xFF & (value>>0), true);
+// }
 
 uint16_t tmc4671_readRegister16BitValue(uint8_t motor, uint8_t address, uint8_t channel)
 {
 	int32_t registerValue = tmc4671_readInt(motor, address);
 
 	// read one channel
-	switch(channel)
+	switch (channel)
 	{
 	case BIT_0_TO_15:
 		return (registerValue & 0xFFFF);
@@ -71,7 +67,7 @@ void tmc4671_writeRegister16BitValue(uint8_t motor, uint8_t address, uint8_t cha
 	int32_t registerValue = tmc4671_readInt(motor, address);
 
 	// update one channel
-	switch(channel)
+	switch (channel)
 	{
 	case BIT_0_TO_15:
 		registerValue &= 0xFFFF0000;
@@ -117,7 +113,7 @@ int32_t tmc4671_getTargetTorque_raw(uint8_t motor)
 
 int32_t tmc4671_getActualTorque_raw(uint8_t motor)
 {
-	return (int16_t) tmc4671_readRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_ACTUAL, BIT_16_TO_31);
+	return (int16_t)tmc4671_readRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_ACTUAL, BIT_16_TO_31);
 }
 
 int32_t tmc4671_getActualRampTorque_raw(uint8_t motor)
@@ -130,17 +126,17 @@ int32_t tmc4671_getActualRampTorque_raw(uint8_t motor)
 void tmc4671_setTargetTorque_mA(uint8_t motor, uint16_t torqueMeasurementFactor, int32_t targetTorque)
 {
 	tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_TORQUE);
-	tmc4671_writeRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_TARGET, BIT_16_TO_31, (targetTorque * 256) / (int32_t) torqueMeasurementFactor);
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_TARGET, BIT_16_TO_31, (targetTorque * 256) / (int32_t)torqueMeasurementFactor);
 }
 
 int32_t tmc4671_getTargetTorque_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
 {
-	return (tmc4671_getTargetTorque_raw(motor) * (int32_t) torqueMeasurementFactor) / 256;
+	return (tmc4671_getTargetTorque_raw(motor) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 int32_t tmc4671_getActualTorque_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
 {
-	return (tmc4671_getActualTorque_raw(motor) * (int32_t) torqueMeasurementFactor) / 256;
+	return (tmc4671_getActualTorque_raw(motor) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 int32_t tmc4671_getTargetTorqueFluxSum_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
@@ -150,16 +146,16 @@ int32_t tmc4671_getTargetTorqueFluxSum_mA(uint8_t motor, uint16_t torqueMeasurem
 
 	// get target torque value
 	tmc4671_writeInt(motor, TMC4671_INTERIM_ADDR, 0);
-	int32_t torque = (int32_t) tmc4671_readInt(motor, TMC4671_INTERIM_DATA);
+	int32_t torque = (int32_t)tmc4671_readInt(motor, TMC4671_INTERIM_DATA);
 
 	// get target flux value
 	tmc4671_writeInt(motor, TMC4671_INTERIM_ADDR, 1);
-	int32_t flux = (int32_t) tmc4671_readInt(motor, TMC4671_INTERIM_DATA);
+	int32_t flux = (int32_t)tmc4671_readInt(motor, TMC4671_INTERIM_DATA);
 
 	// reset last set index
 	tmc4671_writeInt(motor, TMC4671_INTERIM_ADDR, lastIndex);
 
-	return (((int32_t)flux+(int32_t)torque) * (int32_t)torqueMeasurementFactor) / 256;
+	return (((int32_t)flux + (int32_t)torque) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 int32_t tmc4671_getActualTorqueFluxSum_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
@@ -167,7 +163,7 @@ int32_t tmc4671_getActualTorqueFluxSum_mA(uint8_t motor, uint16_t torqueMeasurem
 	int32_t registerValue = tmc4671_readInt(motor, TMC4671_PID_TORQUE_FLUX_ACTUAL);
 	int16_t flux = (registerValue & 0xFFFF);
 	int16_t torque = ((registerValue >> 16) & 0xFFFF);
-	return (((int32_t)flux+(int32_t)torque) * (int32_t)torqueMeasurementFactor) / 256;
+	return (((int32_t)flux + (int32_t)torque) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 int32_t tmc4671_getActualRampTorque_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
@@ -191,7 +187,7 @@ int32_t tmc4671_getTargetFlux_raw(uint8_t motor)
 
 	// get value
 	tmc4671_writeInt(motor, TMC4671_INTERIM_ADDR, 1);
-	int32_t value = (int32_t) tmc4671_readInt(motor, TMC4671_INTERIM_DATA);
+	int32_t value = (int32_t)tmc4671_readInt(motor, TMC4671_INTERIM_DATA);
 
 	// reset last set index
 	tmc4671_writeInt(motor, TMC4671_INTERIM_ADDR, lastIndex);
@@ -200,33 +196,33 @@ int32_t tmc4671_getTargetFlux_raw(uint8_t motor)
 
 int32_t tmc4671_getActualFlux_raw(uint8_t motor)
 {
-	return (int16_t) tmc4671_readRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_ACTUAL, BIT_0_TO_15);
+	return (int16_t)tmc4671_readRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_ACTUAL, BIT_0_TO_15);
 }
 
 void tmc4671_setTargetFlux_mA(uint8_t motor, uint16_t torqueMeasurementFactor, int32_t targetFlux)
 {
 	// do not change the MOTION_MODE here! target flux can also be used during velocity and position modes
-	tmc4671_writeRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_TARGET, BIT_0_TO_15, (targetFlux * 256) / (int32_t) torqueMeasurementFactor);
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_TARGET, BIT_0_TO_15, (targetFlux * 256) / (int32_t)torqueMeasurementFactor);
 }
 
 int32_t tmc4671_getTargetFlux_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
 {
-	return (tmc4671_getTargetFlux_raw(motor) * (int32_t) torqueMeasurementFactor) / 256;
+	return (tmc4671_getTargetFlux_raw(motor) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 int32_t tmc4671_getActualFlux_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
 {
-	return (tmc4671_getActualFlux_raw(motor) * (int32_t) torqueMeasurementFactor) / 256;
+	return (tmc4671_getActualFlux_raw(motor) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 void tmc4671_setTorqueFluxLimit_mA(uint8_t motor, uint16_t torqueMeasurementFactor, int32_t max)
 {
-	tmc4671_writeRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, BIT_0_TO_15, (max * 256) / (int32_t) torqueMeasurementFactor);
+	tmc4671_writeRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, BIT_0_TO_15, (max * 256) / (int32_t)torqueMeasurementFactor);
 }
 
 int32_t tmc4671_getTorqueFluxLimit_mA(uint8_t motor, uint16_t torqueMeasurementFactor)
 {
-	return ((int32_t) tmc4671_readRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, BIT_0_TO_15) * (int32_t) torqueMeasurementFactor) / 256;
+	return ((int32_t)tmc4671_readRegister16BitValue(motor, TMC4671_PID_TORQUE_FLUX_LIMITS, BIT_0_TO_15) * (int32_t)torqueMeasurementFactor) / 256;
 }
 
 void tmc4671_setTargetVelocity(uint8_t motor, int32_t targetVelocity)
@@ -237,12 +233,12 @@ void tmc4671_setTargetVelocity(uint8_t motor, int32_t targetVelocity)
 
 int32_t tmc4671_getTargetVelocity(uint8_t motor)
 {
-	return (int32_t) tmc4671_readInt(motor, TMC4671_PID_VELOCITY_TARGET);
+	return (int32_t)tmc4671_readInt(motor, TMC4671_PID_VELOCITY_TARGET);
 }
 
 int32_t tmc4671_getActualVelocity(uint8_t motor)
 {
-	return (int32_t) tmc4671_readInt(motor, TMC4671_PID_VELOCITY_ACTUAL);
+	return (int32_t)tmc4671_readInt(motor, TMC4671_PID_VELOCITY_ACTUAL);
 }
 
 int32_t tmc4671_getActualRampVelocity(uint8_t motor)
@@ -262,12 +258,12 @@ void tmc4671_setRelativeTargetPosition(uint8_t motor, int32_t relativePosition)
 {
 	tmc4671_switchToMotionMode(motor, TMC4671_MOTION_MODE_POSITION);
 	// determine actual position and add relative position ticks
-	tmc4671_writeInt(motor, TMC4671_PID_POSITION_TARGET, (int32_t) tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL) + relativePosition);
+	tmc4671_writeInt(motor, TMC4671_PID_POSITION_TARGET, (int32_t)tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL) + relativePosition);
 }
 
 int32_t tmc4671_getTargetPosition(uint8_t motor)
 {
-	return (int32_t) tmc4671_readInt(motor, TMC4671_PID_POSITION_TARGET);
+	return (int32_t)tmc4671_readInt(motor, TMC4671_PID_POSITION_TARGET);
 }
 
 void tmc4671_setActualPosition(uint8_t motor, int32_t actualPosition)
@@ -277,7 +273,7 @@ void tmc4671_setActualPosition(uint8_t motor, int32_t actualPosition)
 
 int32_t tmc4671_getActualPosition(uint8_t motor)
 {
-	return (int32_t) tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL);
+	return (int32_t)tmc4671_readInt(motor, TMC4671_PID_POSITION_ACTUAL);
 }
 
 int32_t tmc4671_getActualRampPosition(uint8_t motor)
@@ -289,7 +285,7 @@ int32_t tmc4671_getActualRampPosition(uint8_t motor)
 
 // encoder initialization
 void tmc4671_doEncoderInitializationMode0(uint8_t motor, uint8_t *initState, uint16_t initWaitTime, uint16_t *actualInitWaitTime, uint16_t startVoltage,
-		uint16_t *last_Phi_E_Selection, uint32_t *last_UQ_UD_EXT, int16_t *last_PHI_E_EXT)
+										  uint16_t *last_Phi_E_Selection, uint32_t *last_UQ_UD_EXT, int16_t *last_PHI_E_EXT)
 {
 	switch (*initState)
 	{
@@ -299,11 +295,11 @@ void tmc4671_doEncoderInitializationMode0(uint8_t motor, uint8_t *initState, uin
 	case STATE_START_INIT: // started by writing 1 to initState
 
 		// save actual set values for PHI_E_SELECTION, UQ_UD_EXT, and PHI_E_EXT
-		*last_Phi_E_Selection = (uint16_t) tmc4671_readRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15);
-		*last_UQ_UD_EXT = (uint32_t) tmc4671_readInt(motor, TMC4671_UQ_UD_EXT);
-		*last_PHI_E_EXT = (int16_t) tmc4671_readRegister16BitValue(motor, TMC4671_PHI_E_EXT, BIT_0_TO_15);
+		*last_Phi_E_Selection = (uint16_t)tmc4671_readRegister16BitValue(motor, TMC4671_PHI_E_SELECTION, BIT_0_TO_15);
+		*last_UQ_UD_EXT = (uint32_t)tmc4671_readInt(motor, TMC4671_UQ_UD_EXT);
+		*last_PHI_E_EXT = (int16_t)tmc4671_readRegister16BitValue(motor, TMC4671_PHI_E_EXT, BIT_0_TO_15);
 
-		//switch motion mode for running motor in open loop
+		// switch motion mode for running motor in open loop
 		tmc4671_writeInt(motor, TMC4671_MODE_RAMP_MODE_MOTION, TMC4671_MOTION_MODE_UQ_UD_EXT);
 
 		// set ABN_DECODER_PHI_E_OFFSET to zero
@@ -324,7 +320,7 @@ void tmc4671_doEncoderInitializationMode0(uint8_t motor, uint8_t *initState, uin
 	case STATE_WAIT_INIT_TIME:
 		// wait until initialization time is over (until no more vibration on the motor)
 		(*actualInitWaitTime)++;
-		if(*actualInitWaitTime >= initWaitTime)
+		if (*actualInitWaitTime >= initWaitTime)
 		{
 			// set internal encoder value to zero
 			tmc4671_writeInt(motor, TMC4671_ABN_DECODER_COUNT, 0);
@@ -360,7 +356,7 @@ int16_t tmc4671_getS16CircleDifference(int16_t newValue, int16_t oldValue)
 }
 
 void tmc4671_doEncoderInitializationMode2(uint8_t motor, uint8_t *initState, uint16_t *actualInitWaitTime,
-		int16_t *hall_phi_e_old, int16_t *hall_phi_e_new, int16_t *hall_actual_coarse_offset, uint16_t *last_Phi_E_Selection)
+										  int16_t *hall_phi_e_old, int16_t *hall_phi_e_new, int16_t *hall_actual_coarse_offset, uint16_t *last_Phi_E_Selection)
 {
 	switch (*initState)
 	{
@@ -381,7 +377,7 @@ void tmc4671_doEncoderInitializationMode2(uint8_t motor, uint8_t *initState, uin
 		*hall_phi_e_old = TMC4671_FIELD_READ(motor, TMC4671_HALL_PHI_E_INTERPOLATED_PHI_E, TMC4671_HALL_PHI_E_MASK, TMC4671_HALL_PHI_E_SHIFT);
 
 		// read actual abn_decoder angle and compute difference to actual hall angle
-		*hall_actual_coarse_offset = tmc4671_getS16CircleDifference(*hall_phi_e_old, (int16_t) tmc4671_readRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M, BIT_16_TO_31));
+		*hall_actual_coarse_offset = tmc4671_getS16CircleDifference(*hall_phi_e_old, (int16_t)tmc4671_readRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M, BIT_16_TO_31));
 
 		// set ABN_DECODER_PHI_E_OFFSET to actual hall-abn-difference, to use the actual hall angle for coarse initialization
 		tmc4671_writeRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, BIT_16_TO_31, *hall_actual_coarse_offset);
@@ -400,13 +396,13 @@ void tmc4671_doEncoderInitializationMode2(uint8_t motor, uint8_t *initState, uin
 		*hall_phi_e_new = TMC4671_FIELD_READ(motor, TMC4671_HALL_PHI_E_INTERPOLATED_PHI_E, TMC4671_HALL_PHI_E_MASK, TMC4671_HALL_PHI_E_SHIFT);
 
 		// wait until hall angle changed
-		if(*hall_phi_e_old != *hall_phi_e_new)
+		if (*hall_phi_e_old != *hall_phi_e_new)
 		{
 			// estimated value = old value + diff between old and new (handle int16_t overrun)
-			int16_t hall_phi_e_estimated = *hall_phi_e_old + tmc4671_getS16CircleDifference(*hall_phi_e_new, *hall_phi_e_old)/2;
+			int16_t hall_phi_e_estimated = *hall_phi_e_old + tmc4671_getS16CircleDifference(*hall_phi_e_new, *hall_phi_e_old) / 2;
 
 			// read actual abn_decoder angle and consider last set abn_decoder_offset
-			int16_t abn_phi_e_actual = (int16_t) tmc4671_readRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M, BIT_16_TO_31) - *hall_actual_coarse_offset;
+			int16_t abn_phi_e_actual = (int16_t)tmc4671_readRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M, BIT_16_TO_31) - *hall_actual_coarse_offset;
 
 			// set ABN_DECODER_PHI_E_OFFSET to actual estimated angle - abn_phi_e_actual difference
 			tmc4671_writeRegister16BitValue(motor, TMC4671_ABN_DECODER_PHI_E_PHI_M_OFFSET, BIT_16_TO_31, tmc4671_getS16CircleDifference(hall_phi_e_estimated, abn_phi_e_actual));
@@ -425,15 +421,15 @@ void tmc4671_doEncoderInitializationMode2(uint8_t motor, uint8_t *initState, uin
 }
 
 void tmc4671_checkEncderInitialization(uint8_t motor, uint32_t actualSystick, uint8_t initMode, uint8_t *initState, uint16_t initWaitTime, uint16_t *actualInitWaitTime, uint16_t startVoltage,
-		int16_t *hall_phi_e_old, int16_t *hall_phi_e_new, int16_t *hall_actual_coarse_offset,
-		uint16_t *last_Phi_E_Selection, uint32_t *last_UQ_UD_EXT, int16_t *last_PHI_E_EXT)
+									   int16_t *hall_phi_e_old, int16_t *hall_phi_e_new, int16_t *hall_actual_coarse_offset,
+									   uint16_t *last_Phi_E_Selection, uint32_t *last_UQ_UD_EXT, int16_t *last_PHI_E_EXT)
 {
 	// use the systick as 1ms timer for encoder initialization
 	static uint32_t lastSystick = 0;
-	if(actualSystick != lastSystick)
+	if (actualSystick != lastSystick)
 	{
 		// needs timer to use the wait time
-		if(initMode == 0)
+		if (initMode == 0)
 		{
 			tmc4671_doEncoderInitializationMode0(motor, initState, initWaitTime, actualInitWaitTime, startVoltage, last_Phi_E_Selection, last_UQ_UD_EXT, last_PHI_E_EXT);
 		}
@@ -441,26 +437,26 @@ void tmc4671_checkEncderInitialization(uint8_t motor, uint32_t actualSystick, ui
 	}
 
 	// needs no timer
-	if(initMode == 2)
+	if (initMode == 2)
 	{
 		tmc4671_doEncoderInitializationMode2(motor, initState, actualInitWaitTime, hall_phi_e_old, hall_phi_e_new, hall_actual_coarse_offset, last_Phi_E_Selection);
 	}
 }
 
 void tmc4671_periodicJob(uint8_t motor, uint32_t actualSystick, uint8_t initMode, uint8_t *initState, uint16_t initWaitTime, uint16_t *actualInitWaitTime, uint16_t startVoltage,
-		int16_t *hall_phi_e_old, int16_t *hall_phi_e_new, int16_t *hall_actual_coarse_offset,
-		uint16_t *last_Phi_E_Selection, uint32_t *last_UQ_UD_EXT, int16_t *last_PHI_E_EXT)
+						 int16_t *hall_phi_e_old, int16_t *hall_phi_e_new, int16_t *hall_actual_coarse_offset,
+						 uint16_t *last_Phi_E_Selection, uint32_t *last_UQ_UD_EXT, int16_t *last_PHI_E_EXT)
 {
 	tmc4671_checkEncderInitialization(motor, actualSystick, initMode, initState, initWaitTime, actualInitWaitTime, startVoltage,
-			hall_phi_e_old, hall_phi_e_new, hall_actual_coarse_offset, last_Phi_E_Selection, last_UQ_UD_EXT, last_PHI_E_EXT);
+									  hall_phi_e_old, hall_phi_e_new, hall_actual_coarse_offset, last_Phi_E_Selection, last_UQ_UD_EXT, last_PHI_E_EXT);
 }
 
 void tmc4671_startEncoderInitialization(uint8_t mode, uint8_t *initMode, uint8_t *initState)
 {
 	// allow only a new initialization if no actual initialization is running
-	if(*initState == STATE_NOTHING_TO_DO)
+	if (*initState == STATE_NOTHING_TO_DO)
 	{
-		if(mode == 0) // estimate offset
+		if (mode == 0) // estimate offset
 		{
 			// set mode
 			*initMode = 0;
@@ -468,7 +464,7 @@ void tmc4671_startEncoderInitialization(uint8_t mode, uint8_t *initMode, uint8_t
 			// start initialization
 			*initState = 1;
 		}
-		else if(mode == 2) // use hall sensor signals
+		else if (mode == 2) // use hall sensor signals
 		{
 			// set mode
 			*initMode = 2;
@@ -485,11 +481,11 @@ void tmc4671_updatePhiSelectionAndInitialize(uint8_t motor, uint8_t actualPhiESe
 	{
 		tmc4671_writeInt(motor, TMC4671_PHI_E_SELECTION, desiredPhiESelection);
 
-		switch(desiredPhiESelection)
+		switch (desiredPhiESelection)
 		{
-			case 3:
-				tmc4671_startEncoderInitialization(initMode, &initMode, initState);
-				break;
+		case 3:
+			tmc4671_startEncoderInitialization(initMode, &initMode, initState);
+			break;
 		}
 	}
 }
